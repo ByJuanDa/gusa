@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 
-const BACKEND = 'http://172.16.20.57:8080'
+const BACKEND = import.meta.env.VITE_API_URL || ''
 
 export default function Catalogo() {
   const [llantas, setLlantas] = useState([])

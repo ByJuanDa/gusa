@@ -181,7 +181,7 @@ function ModalEditar({ llanta, marcas, onClose, onGuardado }) {
     finally { setGuardando(false); setSubiendoImg(false) }
   }
 
-  const backendBase = 'http://172.16.20.57:8080'
+  const backendBase = import.meta.env.VITE_API_URL || ''
 
   return (
     <div style={S.overlay} onClick={onClose}>
@@ -328,7 +328,7 @@ function ModalNuevaLlanta({ marcas, onClose, onCreada }) {
     } finally { setGuardando(false); setSubiendoImg(false) }
   }
 
-  const backendBase = 'http://172.16.20.57:8080'
+  const backendBase = import.meta.env.VITE_API_URL || ''
 
   return (
     <div style={S.overlay} onClick={onClose}>
