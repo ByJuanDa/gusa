@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(railway --version)",
+      "Bash(~/.railway/bin/railway --version)",
+      "Bash(/home/juanda/.local/bin/railway --version)"
+    ]
+  }
+}
