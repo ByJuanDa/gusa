@@ -235,7 +235,8 @@ function ModalGuia({ onClose }) {
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', esc)
-    return () => document.removeEventListener('keydown', esc)
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', esc); document.body.style.overflow = '' }
   }, [onClose])
 
   return (
@@ -285,7 +286,8 @@ function ModalDetalle({ llanta, onClose }) {
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', esc)
-    return () => document.removeEventListener('keydown', esc)
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', esc); document.body.style.overflow = '' }
   }, [onClose])
 
   if (!llanta) return null
