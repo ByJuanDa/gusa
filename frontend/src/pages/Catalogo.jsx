@@ -120,7 +120,7 @@ export default function Catalogo() {
               >
                 {llanta.imagen_url ? (
                   <img
-                    src={llanta.imagen_url}
+                    src={`${BACKEND}${llanta.imagen_url}`}
                     alt={llanta.modelo}
                     style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '10px', marginBottom: '16px' }}
                   />
