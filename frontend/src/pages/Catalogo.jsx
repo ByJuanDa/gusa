@@ -135,89 +135,95 @@ function Arrow({ x1,y1,x2,y2, color, size=6 }) {
 }
 
 function TireDiagram() {
-  const cx = 195, cy = 160
-  const rOut = 100  // outer tread edge
-  const rSide = 78  // inner tread = start of sidewall
-  const rRim  = 48  // rim outer edge
+  // Layout: tire centered, labels outside — nothing overlaps
+  // ViewBox 420×320:  tire at cx=185,cy=148
+  const cx = 185, cy = 148
+  const rOut = 92   // outer tire
+  const rSide = 72  // inner tread / sidewall start
+  const rRim  = 44  // rim
 
-  // Perfil arrow: left side, from top of tire to top of rim (at 12 o'clock, offset left)
-  const px = cx - rOut - 40  // x position of perfil arrow
-  const py1 = cy - rOut       // top of tire
-  const py2 = cy - rRim       // top of rim
+  // ── Annotation coordinates ──
+  // ANCHO: arrow below tire
+  const ay  = cy + rOut + 38             // y of arrow
+  const ax1 = cx - rOut, ax2 = cx + rOut // x span
 
-  // Ancho arrow: below tire
-  const ay = cy + rOut + 36
-  const ax1 = cx - rOut, ax2 = cx + rOut
+  // PERFIL: vertical arrow on the RIGHT side
+  // Shows radial height from rim to outer at 12-o'clock, positioned right
+  const pfx  = cx + rOut + 42           // x of arrow
+  const pfy1 = cy - rOut                // top of tire  (= 56)
+  const pfy2 = cy - rRim                // top of rim   (= 104)
 
-  // Rin arrow: horizontal through center (inside rim)
-  const ry = cy + 18
-  const rx1 = cx - rRim, rx2 = cx + rRim
+  // RIN: horizontal arrow inside rim, label below it (clear of badge)
+  const rix1 = cx - rRim, rix2 = cx + rRim
+  const riy  = cy + 14                  // slightly below center
+  const rilY = riy + 16                 // label y (below arrow)
 
   return (
-    <svg viewBox="0 0 390 330" style={{ width:'100%', display:'block' }}>
+    <svg viewBox="0 0 420 320" style={{ width:'100%', display:'block' }}>
       <style>{GUIA_CSS}</style>
 
-      {/* ── Llanta ─────────────────────────── */}
-      {/* Banda de rodamiento (tread) */}
-      <circle cx={cx} cy={cy} r={rOut}  fill="none" stroke="#3d4f63" strokeWidth={22} className="gt-tread"/>
-      {/* Flanco interior */}
-      <circle cx={cx} cy={cy} r={rSide} fill="none" stroke="#1a2840" strokeWidth={2}  className="gt-side"/>
-      {/* Rin */}
-      <circle cx={cx} cy={cy} r={rRim}  fill="#0d1520" stroke="#2d3e50" strokeWidth={3} className="gt-rim"/>
-      {/* Rayos */}
-      {[30,90,150,210,270,330].map(a => {
-        const r = a*Math.PI/180
-        return <line key={a} x1={cx+16*Math.cos(r)} y1={cy+16*Math.sin(r)} x2={cx+44*Math.cos(r)} y2={cy+44*Math.sin(r)} stroke="#1e2d3d" strokeWidth="3" className="gt-hub"/>
-      })}
-      <circle cx={cx} cy={cy} r={14} fill="#0a1018" stroke="#1e2d3d" strokeWidth={2} className="gt-hub"/>
+      {/* Fondo sólido para que las partículas no se cuelen */}
+      <rect x="0" y="0" width="420" height="320" fill="#060a12" rx="12"/>
 
-      {/* ══ Paso 1: ANCHO (azul) ══════════════ */}
-      {/* Highlight del ancho de la llanta */}
-      <circle cx={cx} cy={cy} r={rOut} fill="none" stroke="#60a5fa" strokeWidth={23} strokeOpacity="0.15" className="ga-hl"/>
-      {/* Flecha + guías */}
+      {/* ── Llanta ── */}
+      <circle cx={cx} cy={cy} r={rOut}  fill="none" stroke="#3a4f65" strokeWidth={20} className="gt-tread"/>
+      <circle cx={cx} cy={cy} r={rSide} fill="none" stroke="#192030" strokeWidth={2}  className="gt-side"/>
+      <circle cx={cx} cy={cy} r={rRim}  fill="#0c1520" stroke="#2a3d52" strokeWidth={3} className="gt-rim"/>
+      {[30,90,150,210,270,330].map(a => {
+        const rad = a*Math.PI/180
+        return <line key={a}
+          x1={cx+15*Math.cos(rad)} y1={cy+15*Math.sin(rad)}
+          x2={cx+40*Math.cos(rad)} y2={cy+40*Math.sin(rad)}
+          stroke="#1e2d3d" strokeWidth="3" className="gt-hub"/>
+      })}
+      <circle cx={cx} cy={cy} r={13} fill="#09111c" stroke="#1e2d3d" strokeWidth={2} className="gt-hub"/>
+
+      {/* ══ ANCHO (azul) — flecha abajo ══ */}
+      <circle cx={cx} cy={cy} r={rOut} fill="none" stroke="#60a5fa" strokeWidth={21} strokeOpacity="0.13" className="ga-hl"/>
       <g className="ga-line">
-        <line x1={ax1} y1={cy+rOut} x2={ax1} y2={ay-4} stroke="#60a5fa" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
-        <line x1={ax2} y1={cy+rOut} x2={ax2} y2={ay-4} stroke="#60a5fa" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
+        {/* guías verticales punteadas */}
+        <line x1={ax1} y1={cy+rOut} x2={ax1} y2={ay-5} stroke="#60a5fa" strokeWidth="1" strokeDasharray="4,3" opacity="0.45"/>
+        <line x1={ax2} y1={cy+rOut} x2={ax2} y2={ay-5} stroke="#60a5fa" strokeWidth="1" strokeDasharray="4,3" opacity="0.45"/>
         <Arrow x1={ax1} y1={ay} x2={ax2} y2={ay} color="#60a5fa"/>
       </g>
       <g className="ga-text">
-        <rect x={cx-46} y={ay+7} width={92} height={22} rx="6" fill="rgba(96,165,250,0.12)" stroke="rgba(96,165,250,0.25)" strokeWidth="1"/>
-        <text x={cx} y={ay+22} textAnchor="middle" fill="#60a5fa" fontSize="12" fontWeight="800" fontFamily="monospace">ANCHO  205 mm</text>
+        <rect x={cx-48} y={ay+8} width={96} height={22} rx="6" fill="rgba(96,165,250,0.1)" stroke="rgba(96,165,250,0.3)" strokeWidth="1"/>
+        <text x={cx} y={ay+23} textAnchor="middle" fill="#60a5fa" fontSize="12" fontWeight="800" fontFamily="monospace">ANCHO  205 mm</text>
       </g>
 
-      {/* ══ Paso 2: PERFIL (verde) ════════════ */}
-      {/* Highlight del flanco */}
-      <circle cx={cx} cy={cy} r={(rOut+rRim)/2} fill="none" stroke="#34d399" strokeWidth={(rOut-rRim)} strokeOpacity="0.13" className="gp-hl"/>
-      {/* Flecha vertical izquierda */}
+      {/* ══ PERFIL (verde) — flecha derecha vertical ══ */}
+      <circle cx={cx} cy={cy} r={(rOut+rRim)/2} fill="none" stroke="#34d399" strokeWidth={rOut-rRim} strokeOpacity="0.10" className="gp-hl"/>
       <g className="gp-line">
-        <line x1={cx-rOut} y1={py1} x2={px+4} y2={py1} stroke="#34d399" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
-        <line x1={cx-rRim} y1={py2} x2={px+4} y2={py2} stroke="#34d399" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
-        <Arrow x1={px} y1={py1} x2={px} y2={py2} color="#34d399"/>
+        {/* guías horizontales desde 12-o'clock hacia la derecha */}
+        <line x1={cx} y1={pfy1} x2={pfx-5} y2={pfy1} stroke="#34d399" strokeWidth="1" strokeDasharray="4,3" opacity="0.45"/>
+        <line x1={cx} y1={pfy2} x2={pfx-5} y2={pfy2} stroke="#34d399" strokeWidth="1" strokeDasharray="4,3" opacity="0.45"/>
+        <Arrow x1={pfx} y1={pfy1} x2={pfx} y2={pfy2} color="#34d399"/>
       </g>
       <g className="gp-text">
-        <rect x={px-74} y={(py1+py2)/2-11} width={72} height={22} rx="6" fill="rgba(52,211,153,0.1)" stroke="rgba(52,211,153,0.25)" strokeWidth="1"/>
-        <text x={px-38} y={(py1+py2)/2+4} textAnchor="middle" fill="#34d399" fontSize="12" fontWeight="800" fontFamily="monospace">PERFIL 60%</text>
+        <rect x={pfx+8} y={(pfy1+pfy2)/2-13} width={84} height={26} rx="6" fill="rgba(52,211,153,0.1)" stroke="rgba(52,211,153,0.3)" strokeWidth="1"/>
+        <text x={pfx+50} y={(pfy1+pfy2)/2+1} textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="800" fontFamily="monospace">PERFIL  60%</text>
       </g>
 
-      {/* ══ Paso 3: RIN (amarillo) ════════════ */}
-      {/* Highlight del rin */}
-      <circle cx={cx} cy={cy} r={rRim} fill="none" stroke="#facc15" strokeWidth={4} strokeOpacity="0.3" className="gr-hl"/>
-      {/* Flecha horizontal a través del rin */}
+      {/* ══ RIN (amarillo) — flecha dentro del rin, label abajo ══ */}
+      <circle cx={cx} cy={cy} r={rRim} fill="none" stroke="#facc15" strokeWidth={5} strokeOpacity="0.28" className="gr-hl"/>
       <g className="gr-line">
-        <Arrow x1={rx1} y1={ry} x2={rx2} y2={ry} color="#facc15"/>
+        <Arrow x1={rix1} y1={riy} x2={rix2} y2={riy} color="#facc15"/>
       </g>
       <g className="gr-text">
-        <rect x={cx+rRim+8} y={ry-11} width={62} height={22} rx="6" fill="rgba(250,204,21,0.1)" stroke="rgba(250,204,21,0.25)" strokeWidth="1"/>
-        <text x={cx+rRim+39} y={ry+4} textAnchor="middle" fill="#facc15" fontSize="12" fontWeight="800" fontFamily="monospace">RIN  13"</text>
+        {/* label centrado DEBAJO de la flecha del rin */}
+        <rect x={cx-34} y={rilY+2} width={68} height={22} rx="6" fill="rgba(250,204,21,0.1)" stroke="rgba(250,204,21,0.3)" strokeWidth="1"/>
+        <text x={cx} y={rilY+17} textAnchor="middle" fill="#facc15" fontSize="12" fontWeight="800" fontFamily="monospace">RIN  13"</text>
       </g>
 
-      {/* ══ Badge final ═══════════════════════ */}
+      {/* ══ Badge 205/60R13 — aparece al final, sobre el rin ══ */}
       <g className="g-badge">
-        <rect x={cx-66} y={cy-20} width={132} height={40} rx="12"
-          fill="rgba(8,14,24,0.95)" stroke="#1f2937" strokeWidth="1.5"/>
-        <text x={cx} y={cy+7} textAnchor="middle" fontFamily="'Courier New',monospace" fontSize="20" fontWeight="900">
-          <tspan fill="#60a5fa">205</tspan><tspan fill="#374151">/</tspan>
-          <tspan fill="#34d399">60</tspan><tspan fill="#f87171">R</tspan>
+        <rect x={cx-62} y={cy-17} width={124} height={34} rx="10"
+          fill="rgba(6,10,18,0.97)" stroke="#1f2937" strokeWidth="1.5"/>
+        <text x={cx} y={cy+6} textAnchor="middle" fontFamily="'Courier New',monospace" fontSize="19" fontWeight="900">
+          <tspan fill="#60a5fa">205</tspan>
+          <tspan fill="#374151">/</tspan>
+          <tspan fill="#34d399">60</tspan>
+          <tspan fill="#f87171">R</tspan>
           <tspan fill="#facc15">13</tspan>
         </text>
       </g>
