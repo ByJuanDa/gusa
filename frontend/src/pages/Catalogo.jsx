@@ -1,7 +1,95 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import api from '../services/api'
 
 const BACKEND = import.meta.env.VITE_API_URL || ''
+
+// ── Fondo de partículas ───────────────────────────────────────
+function ParticleCanvas() {
+  const canvasRef = useRef(null)
+
+  const init = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let raf
+
+    const resize = () => {
+      canvas.width  = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const COUNT   = Math.min(Math.floor(canvas.width / 10), 90)
+    const MAX_D   = 130   // distancia máxima para trazar línea
+
+    const particles = Array.from({ length: COUNT }, () => ({
+      x:  Math.random() * canvas.width,
+      y:  Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      r:  Math.random() * 1.5 + 0.5,
+    }))
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // Mover
+      for (const p of particles) {
+        p.x += p.vx
+        p.y += p.vy
+        if (p.x < 0 || p.x > canvas.width)  p.vx *= -1
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1
+      }
+
+      // Líneas entre partículas cercanas
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx   = particles[i].x - particles[j].x
+          const dy   = particles[i].y - particles[j].y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < MAX_D) {
+            const alpha = (1 - dist / MAX_D) * 0.18
+            ctx.strokeStyle = `rgba(250,204,21,${alpha})`
+            ctx.lineWidth   = 0.7
+            ctx.beginPath()
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.stroke()
+          }
+        }
+      }
+
+      // Puntos
+      for (const p of particles) {
+        ctx.fillStyle = 'rgba(250,204,21,0.45)'
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      raf = requestAnimationFrame(draw)
+    }
+
+    draw()
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize) }
+  }, [])
+
+  useEffect(() => { return init() }, [init])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed', inset: 0,
+        width: '100%', height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+        opacity: 0.6,
+      }}
+    />
+  )
+}
 
 const CSS = `
   @keyframes spin   { to { transform: rotate(360deg); } }
@@ -176,11 +264,15 @@ export default function Catalogo() {
   )
 
   return (
-    <div style={{ background: '#030712', color: '#fff', minHeight: '100dvh' }}>
+    <div style={{ background: '#030712', color: '#fff', minHeight: '100dvh', position: 'relative' }}>
       <style>{CSS}</style>
+      <ParticleCanvas />
+
+      {/* Todo el contenido encima del canvas */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
 
       {/* ── Cabecera ── */}
-      <div style={{ background: 'linear-gradient(180deg,#06080f 0%,#030712 100%)', borderBottom: '1px solid #0d1117', padding: '48px 24px 28px', textAlign: 'center' }}>
+      <div style={{ background: 'linear-gradient(180deg,rgba(6,8,15,0.95) 0%,rgba(3,7,18,0.9) 100%)', borderBottom: '1px solid #0d1117', padding: '48px 24px 28px', textAlign: 'center', backdropFilter: 'blur(2px)' }}>
         <h2 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 6px' }}>
           Nuestro <span style={{ color: '#facc15' }}>Catálogo</span>
         </h2>
@@ -287,6 +379,7 @@ export default function Catalogo() {
           ))
         )}
       </div>
+      </div>{/* /zIndex wrapper */}
     </div>
   )
 }
