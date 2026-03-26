@@ -53,7 +53,128 @@ function ParticleCanvas() {
 }
 
 // ── Modal de detalle ─────────────────────────────────────────
-// ── Guía de medidas ──────────────────────────────────────────
+// ── Guía de medidas con animación SVG ────────────────────────
+const GUIA_CSS = `
+  @keyframes drawCircle {
+    from { stroke-dashoffset: 900; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes growLine {
+    from { stroke-dashoffset: 200; }
+    to   { stroke-dashoffset: 0; }
+  }
+  .g-tire-outer {
+    stroke-dasharray: 900; stroke-dashoffset: 900;
+    animation: drawCircle 1.2s ease forwards;
+  }
+  .g-tire-inner {
+    stroke-dasharray: 900; stroke-dashoffset: 900;
+    animation: drawCircle 1.2s 0.3s ease forwards;
+  }
+  .g-rim {
+    stroke-dasharray: 500; stroke-dashoffset: 500;
+    animation: drawCircle 0.9s 0.8s ease forwards;
+  }
+
+  .g-ancho   { opacity:0; animation: fadeIn 0.5s 1.6s ease forwards; }
+  .g-perfil  { opacity:0; animation: fadeIn 0.5s 2.4s ease forwards; }
+  .g-rin     { opacity:0; animation: fadeIn 0.5s 3.2s ease forwards; }
+  .g-badge   { opacity:0; animation: fadeIn 0.5s 4.0s ease forwards; }
+
+  .g-line-ancho  { stroke-dasharray:200; stroke-dashoffset:200; animation: growLine 0.4s 1.6s ease forwards; }
+  .g-line-perfil { stroke-dasharray:200; stroke-dashoffset:200; animation: growLine 0.4s 2.4s ease forwards; }
+  .g-line-rin    { stroke-dasharray:200; stroke-dashoffset:200; animation: growLine 0.4s 3.2s ease forwards; }
+`
+
+function TireDiagram() {
+  // Centro: 170,155  Outer r=105  Tread=22  Rim r=52
+  const cx = 170, cy = 155
+  const rOut = 105, rTread = 83, rRim = 52
+
+  return (
+    <svg viewBox="0 0 340 310" style={{ width:'100%', maxWidth:340, overflow:'visible' }}>
+      <style>{GUIA_CSS}</style>
+
+      {/* ── Llanta ── */}
+      {/* Tread (banda de rodamiento) */}
+      <circle cx={cx} cy={cy} r={rOut}   fill="none" stroke="#2d3748" strokeWidth={22}  className="g-tire-outer" />
+      {/* Flanco / sidewall */}
+      <circle cx={cx} cy={cy} r={rTread} fill="none" stroke="#1e2a3a" strokeWidth={2}   className="g-tire-inner" />
+      {/* Rin */}
+      <circle cx={cx} cy={cy} r={rRim}   fill="#101828" stroke="#374151" strokeWidth={2} className="g-rim" />
+      {/* Rayos decorativos del rin */}
+      {[0,60,120,180,240,300].map(a => {
+        const rad = a * Math.PI / 180
+        return <line key={a}
+          x1={cx + 18*Math.cos(rad)} y1={cy + 18*Math.sin(rad)}
+          x2={cx + 48*Math.cos(rad)} y2={cy + 48*Math.sin(rad)}
+          stroke="#1f2937" strokeWidth="2.5"
+          style={{ opacity:0, animation:`fadeIn 0.3s ${0.9 + a/900}s ease forwards` }}
+        />
+      })}
+      {/* Centro del rin */}
+      <circle cx={cx} cy={cy} r={16} fill="#1a2535"
+        style={{ opacity:0, animation:'fadeIn 0.3s 0.9s ease forwards' }} />
+
+      {/* ══ ANCHO (azul) ══ */}
+      {/* Flecha horizontal debajo del neumático */}
+      <g className="g-ancho">
+        {/* línea horizontal con flechas */}
+        <line x1={cx-rOut} y1={cy+135} x2={cx+rOut} y2={cy+135} stroke="#60a5fa" strokeWidth="1.5" className="g-line-ancho" />
+        <polygon points={`${cx-rOut},${cy+135} ${cx-rOut+9},${cy+130} ${cx-rOut+9},${cy+140}`} fill="#60a5fa"/>
+        <polygon points={`${cx+rOut},${cy+135} ${cx+rOut-9},${cy+130} ${cx+rOut-9},${cy+140}`} fill="#60a5fa"/>
+        {/* líneas guía verticales punteadas */}
+        <line x1={cx-rOut} y1={cy+rOut} x2={cx-rOut} y2={cy+130} stroke="#60a5fa" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
+        <line x1={cx+rOut} y1={cy+rOut} x2={cx+rOut} y2={cy+130} stroke="#60a5fa" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
+        {/* etiqueta */}
+        <rect x={cx-38} y={cy+140} width={76} height={22} rx="5" fill="rgba(96,165,250,0.12)" />
+        <text x={cx} y={cy+155} textAnchor="middle" fill="#60a5fa" fontSize="12" fontWeight="800" fontFamily="monospace">ANCHO 205mm</text>
+      </g>
+
+      {/* ══ PERFIL (verde) ══ */}
+      {/* Flecha vertical derecha entre borde tread y borde rim */}
+      <g className="g-perfil">
+        <line x1={cx+rOut+28} y1={cy-rOut} x2={cx+rOut+28} y2={cy-rRim} stroke="#34d399" strokeWidth="1.5" className="g-line-perfil"/>
+        <polygon points={`${cx+rOut+28},${cy-rOut} ${cx+rOut+23},${cy-rOut+9} ${cx+rOut+33},${cy-rOut+9}`} fill="#34d399"/>
+        <polygon points={`${cx+rOut+28},${cy-rRim} ${cx+rOut+23},${cy-rRim-9} ${cx+rOut+33},${cy-rRim-9}`} fill="#34d399"/>
+        {/* líneas guía horizontales punteadas */}
+        <line x1={cx+rOut} y1={cy-rOut} x2={cx+rOut+25} y2={cy-rOut} stroke="#34d399" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
+        <line x1={cx+rRim} y1={cy-rRim} x2={cx+rOut+25} y2={cy-rRim} stroke="#34d399" strokeWidth="1" strokeDasharray="4,3" opacity="0.5"/>
+        {/* etiqueta */}
+        <rect x={cx+rOut+36} y={cy-(rOut+rRim)/2-11} width={72} height={22} rx="5" fill="rgba(52,211,153,0.1)"/>
+        <text x={cx+rOut+72} y={cy-(rOut+rRim)/2+4} textAnchor="middle" fill="#34d399" fontSize="11" fontWeight="800" fontFamily="monospace">PERFIL 60%</text>
+      </g>
+
+      {/* ══ RIN (amarillo) ══ */}
+      {/* Flecha horizontal en el centro cruzando el rin */}
+      <g className="g-rin">
+        <line x1={cx-rRim} y1={cy} x2={cx+rRim} y2={cy} stroke="#facc15" strokeWidth="1.5" className="g-line-rin"/>
+        <polygon points={`${cx-rRim},${cy} ${cx-rRim+9},${cy-5} ${cx-rRim+9},${cy+5}`} fill="#facc15"/>
+        <polygon points={`${cx+rRim},${cy} ${cx+rRim-9},${cy-5} ${cx+rRim-9},${cy+5}`} fill="#facc15"/>
+        {/* etiqueta arriba del centro */}
+        <rect x={cx-32} y={cy-30} width={64} height={22} rx="5" fill="rgba(250,204,21,0.1)"/>
+        <text x={cx} y={cy-14} textAnchor="middle" fill="#facc15" fontSize="12" fontWeight="800" fontFamily="monospace">RIN 13"</text>
+      </g>
+
+      {/* ══ Badge 205/60R13 ══ */}
+      <g className="g-badge">
+        <rect x={cx-58} y={cy-20} width={116} height={40} rx="10" fill="rgba(15,21,32,0.9)" stroke="#1f2937" strokeWidth="1"/>
+        <text x={cx} y={cy+6} textAnchor="middle" fontFamily="monospace" fontSize="18" fontWeight="800">
+          <tspan fill="#60a5fa">205</tspan>
+          <tspan fill="#4b5563">/</tspan>
+          <tspan fill="#34d399">60</tspan>
+          <tspan fill="#f87171">R</tspan>
+          <tspan fill="#facc15">13</tspan>
+        </text>
+      </g>
+    </svg>
+  )
+}
+
 function ModalGuia({ onClose }) {
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose() }
@@ -62,47 +183,41 @@ function ModalGuia({ onClose }) {
   }, [onClose])
 
   return (
-    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, animation:'fadeBg 0.2s ease' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background:'#0d1117', border:'1px solid #1f2937', borderRadius:20, padding:'32px 28px', maxWidth:480, width:'100%', animation:'popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)', position:'relative' }}>
+    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, animation:'fadeBg 0.2s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'#0d1117', border:'1px solid #1f2937', borderRadius:20, padding:'28px 24px', maxWidth:460, width:'100%', animation:'popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)', position:'relative' }}>
 
-        <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'none', border:'none', color:'#4b5563', cursor:'pointer', fontSize:20, lineHeight:1, padding:4 }}>✕</button>
+        <button onClick={onClose} style={{ position:'absolute', top:14, right:14, background:'none', border:'none', color:'#4b5563', cursor:'pointer', fontSize:20, lineHeight:1, padding:4 }}>✕</button>
 
-        <h3 style={{ fontSize:17, fontWeight:800, color:'#f9fafb', margin:'0 0 4px' }}>¿Cómo leer la medida de una llanta?</h3>
-        <p style={{ fontSize:12, color:'#6b7280', margin:'0 0 24px' }}>Ejemplo: <span style={{ color:'#facc15', fontFamily:'monospace', fontWeight:700 }}>205/60R13</span></p>
+        <h3 style={{ fontSize:16, fontWeight:800, color:'#f9fafb', margin:'0 0 2px' }}>¿Cómo leer la medida de una llanta?</h3>
+        <p style={{ fontSize:12, color:'#6b7280', margin:'0 0 20px' }}>La animación muestra qué significa cada número</p>
 
-        {/* Diagrama visual */}
-        <div style={{ background:'#060a12', border:'1px solid #1a2233', borderRadius:14, padding:'20px 16px', marginBottom:24, textAlign:'center' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:0, fontFamily:'monospace', fontSize:22, fontWeight:800, letterSpacing:1 }}>
-            <span style={{ color:'#60a5fa' }}>205</span>
-            <span style={{ color:'#4b5563' }}>/</span>
-            <span style={{ color:'#34d399' }}>60</span>
-            <span style={{ color:'#f87171' }}>R</span>
-            <span style={{ color:'#facc15' }}>13</span>
-          </div>
-          {/* Líneas apuntando */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px 16px', marginTop:20, textAlign:'left' }}>
-            {[
-              { color:'#60a5fa', label:'205', title:'Ancho', desc:'Ancho del neumático en milímetros (de pared a pared).' },
-              { color:'#34d399', label:'60',  title:'Perfil', desc:'Altura del flanco como % del ancho. Menor número = llanta más deportiva.' },
-              { color:'#f87171', label:'R',   title:'Construcción', desc:'"R" indica construcción Radial, el tipo más común.' },
-              { color:'#facc15', label:'13',  title:'Rin', desc:'Diámetro del rin en pulgadas al que se monta la llanta.' },
-            ].map(({ color, label, title, desc }) => (
-              <div key={label} style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
-                <div style={{ minWidth:32, height:32, borderRadius:8, background:`${color}18`, border:`1px solid ${color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'monospace', fontWeight:800, fontSize:13, color, flexShrink:0 }}>{label}</div>
-                <div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#e5e7eb', marginBottom:2 }}>{title}</div>
-                  <div style={{ fontSize:11, color:'#6b7280', lineHeight:1.5 }}>{desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Diagrama animado */}
+        <div style={{ background:'#060a12', borderRadius:14, padding:'16px 8px 8px', marginBottom:20 }}>
+          <TireDiagram />
         </div>
 
-        {/* Tip extra */}
-        <div style={{ background:'rgba(250,204,21,0.06)', border:'1px solid rgba(250,204,21,0.15)', borderRadius:10, padding:'12px 14px', display:'flex', gap:10, alignItems:'flex-start' }}>
-          <span style={{ fontSize:16 }}>💡</span>
-          <p style={{ margin:0, fontSize:12, color:'#9ca3af', lineHeight:1.6 }}>
-            Para encontrar la medida correcta, revisa la pared lateral de tu llanta actual o consulta el manual de tu vehículo.
+        {/* Leyenda compacta */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 12px', marginBottom:16 }}>
+          {[
+            { color:'#60a5fa', label:'205', title:'Ancho', desc:'mm de pared a pared' },
+            { color:'#34d399', label:'60',  title:'Perfil', desc:'% del ancho — altura del flanco' },
+            { color:'#f87171', label:'R',   title:'Radial', desc:'tipo de construcción' },
+            { color:'#facc15', label:'13',  title:'Rin',   desc:'diámetro en pulgadas' },
+          ].map(({ color, label, title, desc }) => (
+            <div key={label} style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <div style={{ minWidth:28, height:28, borderRadius:6, background:`${color}15`, border:`1px solid ${color}40`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'monospace', fontWeight:800, fontSize:12, color, flexShrink:0 }}>{label}</div>
+              <div>
+                <div style={{ fontSize:11, fontWeight:700, color:'#e5e7eb' }}>{title}</div>
+                <div style={{ fontSize:10, color:'#4b5563' }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background:'rgba(250,204,21,0.06)', border:'1px solid rgba(250,204,21,0.15)', borderRadius:10, padding:'10px 12px', display:'flex', gap:8, alignItems:'flex-start' }}>
+          <span style={{ fontSize:14 }}>💡</span>
+          <p style={{ margin:0, fontSize:11, color:'#9ca3af', lineHeight:1.6 }}>
+            La medida está impresa en la pared lateral de tu llanta actual. También puedes consultarla en el manual de tu vehículo.
           </p>
         </div>
       </div>
