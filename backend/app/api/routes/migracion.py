@@ -40,7 +40,11 @@ def importar_datos(payload: dict, token: str, db: Session = Depends(get_db)):
     skipped_llantas = 0
     for ll in payload.get("llantas", []):
         # Saltar si ya existe ese código
-        if db.query(Llanta).filter(Llanta.codigo == ll["codigo"]).first():
+        existing = db.query(Llanta).filter(Llanta.codigo == ll["codigo"]).first()
+        if existing:
+            # Actualizar imagen_url si el export trae una y la BD no tiene
+            if ll.get("imagen_url") and not existing.imagen_url:
+                existing.imagen_url = ll["imagen_url"]
             skipped_llantas += 1
             continue
 
