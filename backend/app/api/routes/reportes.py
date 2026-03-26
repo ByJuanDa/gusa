@@ -270,7 +270,7 @@ def reporte_ventas(
 
     wb = openpyxl.Workbook()
 
-    # ── Hoja 1: Resumen de ventas ─────────────────────────────
+    # ── Hoja 1: Ventas con detalle inline ─────────────────────
     ws1 = wb.active
     ws1.title = "Ventas"
     ws1.sheet_view.showGridLines = False
@@ -283,7 +283,8 @@ def reporte_ventas(
     elif fecha_hasta:
         rango = f"  |  Hasta {fecha_hasta.strftime('%d/%m/%Y')}"
 
-    ws1.merge_cells("A1:H1")
+    NUM_COLS = 12
+    ws1.merge_cells(f"A1:{get_column_letter(NUM_COLS)}1")
     t = ws1["A1"]
     t.value = f"GUSA — Reporte de Ventas{rango}  |  Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
     t.font = Font(bold=True, color=BLANCO, size=12)
@@ -291,49 +292,93 @@ def reporte_ventas(
     t.alignment = Alignment(horizontal="center", vertical="center")
     ws1.row_dimensions[1].height = 26
 
-    hdrs1 = ["#", "Fecha", "Vendedor", "Piezas", "Total $", "Estado", "Notas", "Folio"]
+    # Columnas: A=# B=Folio C=Fecha D=Vendedor E=Código F=Marca G=Modelo H=Medida I=Cant. J=P.Unit.$ K=Total/Sub$ L=Estado
+    hdrs1 = ["#", "Folio", "Fecha", "Vendedor", "Código", "Marca", "Modelo", "Medida", "Cant.", "P. Unit. $", "Total / Sub $", "Estado"]
     for col, h in enumerate(hdrs1, 1):
         _hdr_cell(ws1, 2, col, h)
     ws1.row_dimensions[2].height = 22
 
     ventas_activas = 0
     total_ingresos = 0.0
-    total_piezas   = 0
+    total_piezas_g = 0
 
+    BG_VENTA_PAR  = "FF0D1220"
+    BG_VENTA_IMPAR = "FF080C18"
+    BG_PROD       = "FF060A14"
+
+    cur_row = 3
     for i, v in enumerate(ventas, 1):
-        row = i + 2
-        bg = "FF0A0E17" if i % 2 == 0 else "FF06080F"
         piezas = sum(d.cantidad for d in v.detalles)
         vendedor = v.usuario.nombre if v.usuario else "—"
-        estado_color = "FF4ADE80" if v.status == "activa" else ROJO
+        estado_color = VERDE if v.status == "activa" else ROJO
+        bg_v = BG_VENTA_PAR if i % 2 == 0 else BG_VENTA_IMPAR
 
         if v.status == "activa":
             ventas_activas += 1
             total_ingresos += v.total or 0
-            total_piezas   += piezas
+            total_piezas_g += piezas
 
-        _data_cell(ws1, row, 1, i,   bg=bg, fg="FF6B7280")
-        _data_cell(ws1, row, 2, v.fecha.strftime("%d/%m/%Y %H:%M") if v.fecha else "", bg=bg, fg="FF9CA3AF")
-        _data_cell(ws1, row, 3, vendedor, bg=bg, fg="FFE5E7EB", bold=True)
-        _data_cell(ws1, row, 4, piezas, bg=bg, fg=BLANCO, bold=True)
-        c = _data_cell(ws1, row, 5, v.total or 0, bg=bg, fg="FF4ADE80", bold=True)
+        # ── fila cabecera de la venta ──────────────────────────
+        _data_cell(ws1, cur_row, 1,  i,                       bg=bg_v, fg="FF6B7280")
+        _data_cell(ws1, cur_row, 2,  f"V-{v.id:04d}",         bg=bg_v, fg="FFFACC15", bold=True)
+        _data_cell(ws1, cur_row, 3,  v.fecha.strftime("%d/%m/%Y %H:%M") if v.fecha else "", bg=bg_v, fg="FF9CA3AF")
+        _data_cell(ws1, cur_row, 4,  vendedor,                 bg=bg_v, fg="FFE5E7EB", bold=True)
+        # Columnas E-J vacías en la fila de venta (el detalle va abajo)
+        for col in range(5, 11):
+            _data_cell(ws1, cur_row, col, "", bg=bg_v)
+        c = _data_cell(ws1, cur_row, 11, v.total or 0,        bg=bg_v, fg=VERDE, bold=True)
         c.number_format = '"$"#,##0.00'
-        _data_cell(ws1, row, 6, v.status.upper(), bg=bg, fg=estado_color, bold=True)
-        _data_cell(ws1, row, 7, v.notas or "", bg=bg, fg="FF6B7280")
-        _data_cell(ws1, row, 8, f"V-{v.id:04d}", bg=bg, fg="FFFACC15")
+        _data_cell(ws1, cur_row, 12, v.status.upper(),        bg=bg_v, fg=estado_color, bold=True)
+        ws1.row_dimensions[cur_row].height = 18
+        cur_row += 1
 
-    # Totales
-    tot_row = len(ventas) + 3
-    ws1.merge_cells(f"A{tot_row}:C{tot_row}")
+        # ── filas de detalle (productos) ───────────────────────
+        for d in v.detalles:
+            ll = d.llanta
+            marca = (ll.marca.nombre_display or ll.marca.nombre) if ll and ll.marca else "—"
+            for col in range(1, 5):
+                _data_cell(ws1, cur_row, col, "", bg=BG_PROD)
+            _data_cell(ws1, cur_row, 5,  ll.codigo if ll else "—",   bg=BG_PROD, fg="FFFACC15")
+            _data_cell(ws1, cur_row, 6,  marca,                       bg=BG_PROD, fg="FFD1D5DB")
+            _data_cell(ws1, cur_row, 7,  ll.modelo or "" if ll else "", bg=BG_PROD, fg="FF9CA3AF")
+            _data_cell(ws1, cur_row, 8,  ll.medida if ll else "",     bg=BG_PROD, fg="FFFBBF24")
+            _data_cell(ws1, cur_row, 9,  d.cantidad,                  bg=BG_PROD, fg=BLANCO, bold=True)
+            c1 = _data_cell(ws1, cur_row, 10, d.precio_unitario,      bg=BG_PROD, fg="FF86EFAC")
+            c1.number_format = '"$"#,##0.00'
+            c2 = _data_cell(ws1, cur_row, 11, d.subtotal,             bg=BG_PROD, fg="FF4ADE80", bold=True)
+            c2.number_format = '"$"#,##0.00'
+            _data_cell(ws1, cur_row, 12, v.notas or "",               bg=BG_PROD, fg="FF6B7280")
+            ws1.row_dimensions[cur_row].height = 16
+            cur_row += 1
+
+        # espacio entre ventas
+        cur_row += 1
+
+    # Fila de totales
+    tot_row = cur_row
+    ws1.merge_cells(f"A{tot_row}:D{tot_row}")
     _hdr_cell(ws1, tot_row, 1, f"TOTALES  ({ventas_activas} ventas activas)", bg=GRIS_OSC, fg="FFFACC15")
-    _hdr_cell(ws1, tot_row, 4, total_piezas, bg=GRIS_OSC, fg=VERDE)
-    c = _hdr_cell(ws1, tot_row, 5, total_ingresos, bg=GRIS_OSC, fg=VERDE)
+    for col in range(5, 10):
+        _hdr_cell(ws1, tot_row, col, "", bg=GRIS_OSC)
+    _hdr_cell(ws1, tot_row, 9, total_piezas_g, bg=GRIS_OSC, fg=VERDE)
+    c = _hdr_cell(ws1, tot_row, 11, total_ingresos, bg=GRIS_OSC, fg=VERDE)
     c.number_format = '"$"#,##0.00'
-    for col in range(6, 9):
-        _hdr_cell(ws1, tot_row, col, "", bg=GRIS_OSC, fg=BLANCO)
+    _hdr_cell(ws1, tot_row, 12, "", bg=GRIS_OSC)
 
     ws1.freeze_panes = "A3"
-    _autofit(ws1)
+    # Anchos fijos para legibilidad
+    ws1.column_dimensions["A"].width = 5
+    ws1.column_dimensions["B"].width = 10
+    ws1.column_dimensions["C"].width = 16
+    ws1.column_dimensions["D"].width = 18
+    ws1.column_dimensions["E"].width = 14
+    ws1.column_dimensions["F"].width = 16
+    ws1.column_dimensions["G"].width = 16
+    ws1.column_dimensions["H"].width = 12
+    ws1.column_dimensions["I"].width = 7
+    ws1.column_dimensions["J"].width = 14
+    ws1.column_dimensions["K"].width = 14
+    ws1.column_dimensions["L"].width = 14
 
     # ── Hoja 2: Detalle por línea de producto ─────────────────
     ws2 = wb.create_sheet("Detalle")
