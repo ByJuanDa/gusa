@@ -53,6 +53,63 @@ function ParticleCanvas() {
 }
 
 // ── Modal de detalle ─────────────────────────────────────────
+// ── Guía de medidas ──────────────────────────────────────────
+function ModalGuia({ onClose }) {
+  useEffect(() => {
+    const esc = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', esc)
+    return () => document.removeEventListener('keydown', esc)
+  }, [onClose])
+
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:100, background:'rgba(0,0,0,0.8)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', padding:24, animation:'fadeBg 0.2s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'#0d1117', border:'1px solid #1f2937', borderRadius:20, padding:'32px 28px', maxWidth:480, width:'100%', animation:'popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)', position:'relative' }}>
+
+        <button onClick={onClose} style={{ position:'absolute', top:16, right:16, background:'none', border:'none', color:'#4b5563', cursor:'pointer', fontSize:20, lineHeight:1, padding:4 }}>✕</button>
+
+        <h3 style={{ fontSize:17, fontWeight:800, color:'#f9fafb', margin:'0 0 4px' }}>¿Cómo leer la medida de una llanta?</h3>
+        <p style={{ fontSize:12, color:'#6b7280', margin:'0 0 24px' }}>Ejemplo: <span style={{ color:'#facc15', fontFamily:'monospace', fontWeight:700 }}>205/60R13</span></p>
+
+        {/* Diagrama visual */}
+        <div style={{ background:'#060a12', border:'1px solid #1a2233', borderRadius:14, padding:'20px 16px', marginBottom:24, textAlign:'center' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:0, fontFamily:'monospace', fontSize:22, fontWeight:800, letterSpacing:1 }}>
+            <span style={{ color:'#60a5fa' }}>205</span>
+            <span style={{ color:'#4b5563' }}>/</span>
+            <span style={{ color:'#34d399' }}>60</span>
+            <span style={{ color:'#f87171' }}>R</span>
+            <span style={{ color:'#facc15' }}>13</span>
+          </div>
+          {/* Líneas apuntando */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px 16px', marginTop:20, textAlign:'left' }}>
+            {[
+              { color:'#60a5fa', label:'205', title:'Ancho', desc:'Ancho del neumático en milímetros (de pared a pared).' },
+              { color:'#34d399', label:'60',  title:'Perfil', desc:'Altura del flanco como % del ancho. Menor número = llanta más deportiva.' },
+              { color:'#f87171', label:'R',   title:'Construcción', desc:'"R" indica construcción Radial, el tipo más común.' },
+              { color:'#facc15', label:'13',  title:'Rin', desc:'Diámetro del rin en pulgadas al que se monta la llanta.' },
+            ].map(({ color, label, title, desc }) => (
+              <div key={label} style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+                <div style={{ minWidth:32, height:32, borderRadius:8, background:`${color}18`, border:`1px solid ${color}44`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'monospace', fontWeight:800, fontSize:13, color, flexShrink:0 }}>{label}</div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:'#e5e7eb', marginBottom:2 }}>{title}</div>
+                  <div style={{ fontSize:11, color:'#6b7280', lineHeight:1.5 }}>{desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tip extra */}
+        <div style={{ background:'rgba(250,204,21,0.06)', border:'1px solid rgba(250,204,21,0.15)', borderRadius:10, padding:'12px 14px', display:'flex', gap:10, alignItems:'flex-start' }}>
+          <span style={{ fontSize:16 }}>💡</span>
+          <p style={{ margin:0, fontSize:12, color:'#9ca3af', lineHeight:1.6 }}>
+            Para encontrar la medida correcta, revisa la pared lateral de tu llanta actual o consulta el manual de tu vehículo.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ModalDetalle({ llanta, onClose }) {
   useEffect(() => {
     const esc = (e) => { if (e.key === 'Escape') onClose() }
@@ -225,6 +282,7 @@ export default function Catalogo() {
   const [busqueda, setBusqueda]       = useState('')
   const [marcaFiltro, setMarcaFiltro] = useState('Todas')
   const [seleccionada, setSeleccionada] = useState(null)
+  const [guiaAbierta, setGuiaAbierta]   = useState(false)
 
   useEffect(() => {
     api.get('/llantas/catalogo').then(({ data }) => setLlantas(data)).finally(() => setCargando(false))
@@ -265,6 +323,7 @@ export default function Catalogo() {
       <style>{CSS}</style>
       <ParticleCanvas />
       <ModalDetalle llanta={seleccionada} onClose={() => setSeleccionada(null)} />
+      {guiaAbierta && <ModalGuia onClose={() => setGuiaAbierta(false)} />}
 
       <div style={{ position: 'relative', zIndex: 1 }}>
 
@@ -276,18 +335,32 @@ export default function Catalogo() {
           <p style={{ color: '#6b7280', fontSize: 14, margin: '0 0 24px' }}>
             {llantas.length} llantas disponibles
           </p>
-          <input
-            className="cat-search"
-            type="text"
-            placeholder="Buscar por marca, modelo o medida..."
-            value={busqueda}
-            onChange={e => { setBusqueda(e.target.value); setMarcaFiltro('Todas') }}
-            style={{
-              background: 'rgba(10,14,23,0.9)', border: '1px solid #1a2233',
-              borderRadius: 12, padding: '11px 20px', color: '#fff', fontSize: 14,
-              width: '100%', maxWidth: 440, display: 'block', margin: '0 auto 14px',
-            }}
-          />
+          <div style={{ display:'flex', alignItems:'center', gap:8, maxWidth:440, margin:'0 auto 14px' }}>
+            <input
+              className="cat-search"
+              type="text"
+              placeholder="Buscar por marca, modelo o medida..."
+              value={busqueda}
+              onChange={e => { setBusqueda(e.target.value); setMarcaFiltro('Todas') }}
+              style={{
+                background: 'rgba(10,14,23,0.9)', border: '1px solid #1a2233',
+                borderRadius: 12, padding: '11px 20px', color: '#fff', fontSize: 14,
+                flex: 1,
+              }}
+            />
+            <button
+              onClick={() => setGuiaAbierta(true)}
+              title="¿Cómo leer la medida?"
+              style={{
+                width: 42, height: 42, flexShrink: 0,
+                background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)',
+                borderRadius: 12, color: '#facc15', fontWeight: 800, fontSize: 16,
+                cursor: 'pointer', transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(250,204,21,0.18)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(250,204,21,0.08)'}
+            >?</button>
+          </div>
           <a
             href={`${BACKEND}/api/reportes/lista-precios`} download
             style={{
