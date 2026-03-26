@@ -13,8 +13,10 @@ node_modules/
 dist/
 .DS_Store
 
-# Imágenes subidas
-backend/static/images/llantas/
+# Imágenes subidas por usuario (no las de marca)
+backend/static/images/llantas/LL*.jpg
+backend/static/images/llantas/LL*.png
+backend/static/images/llantas/LL*.webp
 
 # IDEs
 .vscode/
