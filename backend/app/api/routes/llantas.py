@@ -46,6 +46,7 @@ def catalogo_publico(db: Session = Depends(get_db)):
             modelo=l.modelo,
             descripcion=l.descripcion,
             imagen_url=l.imagen_url,
+            precio_venta=l.precio_venta,
         ))
     return result
 

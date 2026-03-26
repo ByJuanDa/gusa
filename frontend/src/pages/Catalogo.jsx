@@ -335,6 +335,16 @@ function ModalDetalle({ llanta, onClose }) {
           </div>
         </div>
 
+        {/* Precio destacado */}
+        {llanta.precio_venta > 0 && (
+          <div style={{ background: 'rgba(250,204,21,0.07)', border: '1px solid rgba(250,204,21,0.18)', borderRadius: 12, padding: '12px 18px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>Precio de venta</span>
+            <span style={{ fontSize: 22, fontWeight: 900, color: '#facc15', letterSpacing: '-0.5px' }}>
+              ${llanta.precio_venta.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+        )}
+
         {/* Filas de datos */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Row label="Medida" value={llanta.medida} mono />
@@ -342,11 +352,81 @@ function ModalDetalle({ llanta, onClose }) {
           {llanta.descripcion && <Row label="Descripción" value={llanta.descripcion} />}
         </div>
 
-        {/* Pie */}
-        <p style={{ marginTop: 24, fontSize: 11, color: '#374151', textAlign: 'center' }}>
-          Consulta disponibilidad y precios con nuestro equipo
-        </p>
+        {/* Pie — botones WhatsApp */}
+        <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <p style={{ fontSize: 11, color: '#4b5563', textAlign: 'center', margin: '0 0 4px' }}>¿Te interesa? Contáctanos por WhatsApp</p>
+          {[['55 3334 8943','525533348943'],['55 2185 3170','525521853170']].map(([num, wa]) => (
+            <a key={wa}
+              href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hola, me interesa la llanta ${llanta.marca_nombre} ${llanta.modelo || ''} ${llanta.medida} (${llanta.codigo})`)}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#128c7e', borderRadius: 10, padding: '10px 16px', color: '#fff', fontWeight: 700, fontSize: 13, textDecoration: 'none', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background='#075e54'}
+              onMouseLeave={e => e.currentTarget.style.background='#128c7e'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              {num}
+            </a>
+          ))}
+        </div>
       </div>
+    </div>
+  )
+}
+
+const WA_NUMEROS = [
+  { label: '55 3334 8943', wa: '525533348943' },
+  { label: '55 2185 3170', wa: '525521853170' },
+]
+const WA_MSG = encodeURIComponent('Hola, me gustaría consultar disponibilidad de llantas.')
+
+function BurbujaWhatsApp() {
+  const [abierto, setAbierto] = useState(false)
+  return (
+    <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+      {abierto && (
+        <div style={{
+          background: '#0d1117', border: '1px solid #1f2937', borderRadius: 16,
+          padding: '16px 18px', minWidth: 220,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          animation: 'popIn 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+        }}>
+          <p style={{ margin: '0 0 12px', fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>Contáctanos por WhatsApp</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {WA_NUMEROS.map(({ label, wa }) => (
+              <a key={wa}
+                href={`https://wa.me/${wa}?text=${WA_MSG}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#128c7e', borderRadius: 10, padding: '10px 14px', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background='#075e54'}
+                onMouseLeave={e => e.currentTarget.style.background='#128c7e'}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+      <button
+        onClick={() => setAbierto(o => !o)}
+        title="Contáctanos por WhatsApp"
+        style={{
+          width: 58, height: 58, borderRadius: '50%',
+          background: abierto ? '#075e54' : '#25d366',
+          border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(37,211,102,0.4)',
+          transition: 'background 0.2s, transform 0.2s',
+          transform: abierto ? 'rotate(45deg) scale(1.05)' : 'scale(1)',
+        }}
+        onMouseEnter={e => { if (!abierto) e.currentTarget.style.transform='scale(1.1)' }}
+        onMouseLeave={e => { if (!abierto) e.currentTarget.style.transform='scale(1)' }}
+      >
+        {abierto
+          ? <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          : <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        }
+      </button>
     </div>
   )
 }
@@ -424,6 +504,10 @@ const CSS = `
     font-weight: 700; padding: 4px 12px; border-radius: 8px;
     width: fit-content; letter-spacing: 0.5px;
   }
+  .tire-price {
+    font-size: 14px; font-weight: 800; color: #4ade80;
+    letter-spacing: -0.3px;
+  }
   .tire-hint {
     font-size: 11px; color: #374151; margin-top: 2px;
     opacity: 0; transition: opacity 0.2s;
@@ -495,6 +579,7 @@ export default function Catalogo() {
       <ParticleCanvas />
       <ModalDetalle llanta={seleccionada} onClose={() => setSeleccionada(null)} />
       {guiaAbierta && <ModalGuia onClose={() => setGuiaAbierta(false)} />}
+      <BurbujaWhatsApp />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
 
@@ -595,6 +680,11 @@ export default function Catalogo() {
                         </svg>
                         {llanta.medida}
                       </span>
+                      {llanta.precio_venta > 0 && (
+                        <span className="tire-price">
+                          ${llanta.precio_venta.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      )}
                       <span className="tire-hint">Ver detalles →</span>
                     </div>
                   ))}

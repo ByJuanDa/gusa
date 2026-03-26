@@ -52,6 +52,7 @@ class LlantaPublica(BaseModel):
     modelo: str | None = None
     descripcion: str | None = None
     imagen_url: str | None = None
+    precio_venta: float | None = None
 
     model_config = {"from_attributes": True}
 
