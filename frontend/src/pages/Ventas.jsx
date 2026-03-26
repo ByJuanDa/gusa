@@ -48,6 +48,132 @@ const S = {
 }
 
 // ── Modal detalle de venta ────────────────────────────────────
+function imprimirComprobante(venta) {
+  const fmt = (n) => `$${Number(n).toFixed(2)}`
+  const fecha = new Date(venta.fecha).toLocaleString('es-MX', {
+    day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+
+  const filas = venta.detalles.map(d => `
+    <tr>
+      <td>${d.llanta_codigo || ''}</td>
+      <td>${d.llanta_marca || ''} ${d.llanta_modelo || ''}<br/>
+          <span class="dim">${d.llanta_medida || ''}</span></td>
+      <td class="center">${d.cantidad}</td>
+      <td class="right">${fmt(d.precio_unitario)}</td>
+      <td class="right bold">${fmt(d.subtotal)}</td>
+    </tr>`).join('')
+
+  const html = `<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8"/>
+    <title>Comprobante Venta #${venta.id}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px;
+             color: #111; background: #fff; padding: 32px; max-width: 600px; margin: 0 auto; }
+
+      .header { display: flex; justify-content: space-between; align-items: flex-start;
+                border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 20px; }
+      .logo   { font-size: 26px; font-weight: 900; letter-spacing: -1px; }
+      .logo span { color: #d4a800; }
+      .sub    { font-size: 11px; color: #666; margin-top: 2px; }
+
+      .badge  { background: #111; color: #fff; border-radius: 6px;
+                padding: 6px 14px; font-size: 13px; font-weight: 700; text-align: right; }
+      .badge .num { font-size: 22px; font-weight: 900; color: #f0c000; }
+
+      .meta   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px;
+                margin-bottom: 20px; background: #f8f8f8; border-radius: 8px; padding: 14px 16px; }
+      .meta label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+                    color: #888; margin-bottom: 2px; display: block; }
+      .meta p     { font-size: 13px; font-weight: 600; }
+
+      table   { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+      thead tr { background: #111; color: #fff; }
+      thead th { padding: 8px 10px; font-size: 11px; text-transform: uppercase;
+                 letter-spacing: 0.5px; text-align: left; }
+      thead th.right  { text-align: right; }
+      thead th.center { text-align: center; }
+      tbody tr:nth-child(even) { background: #f5f5f5; }
+      tbody td { padding: 9px 10px; border-bottom: 1px solid #eee; font-size: 12px; }
+      .dim    { color: #888; font-size: 11px; }
+      .center { text-align: center; }
+      .right  { text-align: right; }
+      .bold   { font-weight: 700; }
+
+      .totals { display: flex; justify-content: flex-end; margin-bottom: 24px; }
+      .totals table { width: 220px; }
+      .totals td    { padding: 5px 8px; font-size: 13px; }
+      .totals .total-row td { border-top: 2px solid #111; font-size: 17px; font-weight: 800; }
+
+      .status { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 11px;
+                font-weight: 700; background: ${venta.status === 'activa' ? '#d4edda' : '#f8d7da'};
+                color: ${venta.status === 'activa' ? '#155724' : '#721c24'}; }
+
+      .footer { text-align: center; font-size: 11px; color: #aaa;
+                border-top: 1px solid #ddd; padding-top: 14px; margin-top: 8px; }
+
+      @media print {
+        body { padding: 16px; }
+        @page { size: A5; margin: 12mm; }
+      }
+    </style>
+  </head><body>
+
+    <div class="header">
+      <div>
+        <div class="logo"><span>G</span>USA <span style="font-size:14px;font-weight:400;color:#666">Distribuidora</span></div>
+        <div class="sub">Comprobante de venta</div>
+      </div>
+      <div class="badge">
+        <div class="num">#${venta.id}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">${fecha}</div>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div>
+        <label>Vendedor</label>
+        <p>${venta.usuario_nombre || '—'}</p>
+      </div>
+      <div>
+        <label>Estado</label>
+        <p><span class="status">${venta.status === 'activa' ? 'Activa' : 'Cancelada'}</span></p>
+      </div>
+      ${venta.notas ? `<div style="grid-column:1/-1"><label>Notas</label><p>${venta.notas}</p></div>` : ''}
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th class="center">Cant.</th>
+          <th class="right">Precio</th>
+          <th class="right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>${filas}</tbody>
+    </table>
+
+    <div class="totals">
+      <table>
+        <tr><td>Artículos</td><td class="right bold">${venta.num_items}</td></tr>
+        <tr class="total-row"><td>TOTAL</td><td class="right">${fmt(venta.total)}</td></tr>
+      </table>
+    </div>
+
+    <div class="footer">GUSA Distribuidora · Comprobante generado el ${new Date().toLocaleString('es-MX')}</div>
+
+    <script>window.onload = () => { window.print() }<\/script>
+  </body></html>`
+
+  const w = window.open('', '_blank', 'width=680,height=800')
+  w.document.write(html)
+  w.document.close()
+}
+
 function ModalDetalle({ ventaId, onClose, onCancelar, esAdmin }) {
   const [venta, setVenta] = useState(null)
   const [cancelando, setCancelando] = useState(false)
@@ -148,6 +274,25 @@ function ModalDetalle({ ventaId, onClose, onCancelar, esAdmin }) {
               <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '22px' }}>${venta.total.toFixed(2)}</span>
             </div>
 
+            {/* Acciones */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              {/* Comprobante — todos los roles */}
+              <button
+                onClick={() => imprimirComprobante(venta)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  backgroundColor: 'rgba(250,204,21,0.08)',
+                  border: '1px solid rgba(250,204,21,0.25)',
+                  color: '#facc15', fontWeight: 700, fontSize: '13px',
+                  padding: '8px 16px', borderRadius: '8px', cursor: 'pointer',
+                }}
+              >
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                </svg>
+                Imprimir / PDF
+              </button>
+
             {/* Cancelar (solo admin, solo si activa) */}
             {esAdmin && venta.status === 'activa' && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -170,6 +315,7 @@ function ModalDetalle({ ventaId, onClose, onCancelar, esAdmin }) {
                 )}
               </div>
             )}
+            </div>{/* /acciones */}
           </>
         )}
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
