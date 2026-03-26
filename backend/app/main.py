@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.db.database import engine, Base
-from app.api.routes import auth, llantas, usuarios, ventas, reportes
+from app.api.routes import auth, llantas, usuarios, ventas, reportes, migracion
 
 # Importar modelos para que SQLAlchemy los registre
 import app.models.puesto      # noqa
@@ -94,6 +94,7 @@ app.include_router(llantas.router)
 app.include_router(usuarios.router)
 app.include_router(ventas.router)
 app.include_router(reportes.router)
+app.include_router(migracion.router)
 
 
 @app.get("/")
