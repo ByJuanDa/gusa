@@ -7,8 +7,9 @@ from app.core.security import verify_password, decode_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-ROLES_ADMIN   = {"Sistemas", "Gerente General"}   # editar + eliminar todo
-ROLES_PRECIO  = {"Sistemas", "Gerente General", "Encargado"}  # solo precio
+ROLES_ADMIN      = {"Sistemas", "Gerente General"}             # editar + eliminar todo
+ROLES_PRECIO     = {"Sistemas", "Gerente General", "Encargado"}  # editar precios
+ROLES_INVENTARIO = {"Sistemas", "Gerente General", "Encargado"}  # crear/editar llantas
 
 
 def autenticar_usuario(db: Session, usuario: str, password: str) -> Usuario | None:
@@ -45,6 +46,13 @@ def require_precio(u: Usuario = Depends(get_usuario_actual)) -> Usuario:
     """Sistemas, Gerente General y Encargado pueden editar precios."""
     if u.puesto.nombre not in ROLES_PRECIO:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sin permisos para editar precios")
+    return u
+
+
+def require_inventario(u: Usuario = Depends(get_usuario_actual)) -> Usuario:
+    """Sistemas, Gerente General y Encargado pueden crear y editar llantas."""
+    if u.puesto.nombre not in ROLES_INVENTARIO:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sin permisos para gestionar inventario")
     return u
 
 

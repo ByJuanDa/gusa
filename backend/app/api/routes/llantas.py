@@ -10,7 +10,7 @@ from app.schemas.llanta import (
     MovimientoCreate, MovimientoOut, MovimientoDetalle, MarcaOut, PrecioUpdate,
     PedidoCreate, PedidoResultado, ItemPedidoResultado,
 )
-from app.services.auth_service import get_usuario_actual, require_admin, require_precio
+from app.services.auth_service import get_usuario_actual, require_admin, require_precio, require_inventario
 import os, uuid, shutil
 
 UPLOAD_DIR = "static/images/llantas"
@@ -72,7 +72,7 @@ def detalle_llanta(llanta_id: int, db: Session = Depends(get_db), _=Depends(get_
 
 
 @router.post("/", response_model=LlantaInventario, status_code=201)
-def crear_llanta(data: LlantaCreate, db: Session = Depends(get_db), _=Depends(require_admin)):
+def crear_llanta(data: LlantaCreate, db: Session = Depends(get_db), _=Depends(require_inventario)):
     if db.query(Llanta).filter(Llanta.codigo == data.codigo).first():
         raise HTTPException(status_code=400, detail="Código ya existe")
     llanta = Llanta(**data.model_dump())

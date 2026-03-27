@@ -783,8 +783,8 @@ export default function Inventario() {
                 </div>
               ))}
 
-              {/* Botón nueva llanta — solo admins */}
-              {esAdmin && (
+              {/* Botón nueva llanta — admins y encargado */}
+              {puedePrecio && (
                 <button
                   onClick={() => setModalNueva(true)}
                   style={{ backgroundColor: '#facc15', color: '#030712', fontWeight: 700, fontSize: '13px', padding: '10px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', transition: 'background-color 0.2s' }}
