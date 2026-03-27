@@ -391,7 +391,7 @@ function BurbujaWhatsApp() {
           boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
           animation: 'popIn 0.2s cubic-bezier(0.34,1.56,0.64,1)',
         }}>
-          <p style={{ margin: '0 0 12px', fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>Contáctanos por WhatsApp</p>
+          <p style={{ margin: '0 0 12px', fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>Contáctanos</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {WA_NUMEROS.map(({ label, wa }) => (
               <a key={wa}
@@ -405,6 +405,19 @@ function BurbujaWhatsApp() {
                 {label}
               </a>
             ))}
+            <a
+              href="https://maps.app.goo.gl/RQrmihDn6M7aF7B7A"
+              target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '10px 14px', color: '#f87171', fontWeight: 700, fontSize: 14, textDecoration: 'none', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(239,68,68,0.28)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(239,68,68,0.15)'}
+            >
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+              Cómo llegar
+            </a>
           </div>
         </div>
       )}
@@ -618,20 +631,38 @@ export default function Catalogo() {
               onMouseLeave={e => e.currentTarget.style.background='rgba(250,204,21,0.08)'}
             >?</button>
           </div>
-          <a
-            href={`${BACKEND}/api/reportes/lista-precios`} download
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7,
-              background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)',
-              color: '#facc15', fontWeight: 700, fontSize: 13,
-              padding: '9px 18px', borderRadius: 10, textDecoration: 'none',
-            }}
-          >
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Descargar lista de precios (.xlsx)
-          </a>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <a
+              href={`${BACKEND}/api/reportes/lista-precios`} download
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)',
+                color: '#facc15', fontWeight: 700, fontSize: 13,
+                padding: '9px 18px', borderRadius: 10, textDecoration: 'none',
+              }}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Descargar lista de precios (.xlsx)
+            </a>
+            <a
+              href="https://maps.app.goo.gl/RQrmihDn6M7aF7B7A"
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                color: '#f87171', fontWeight: 700, fontSize: 13,
+                padding: '9px 18px', borderRadius: 10, textDecoration: 'none',
+              }}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+              Cómo llegar
+            </a>
+          </div>
         </div>
 
         {/* ── Filtros de marca (wrap, no scroll) ── */}
