@@ -290,7 +290,6 @@ function ModalDetalle({ llanta, onClose }) {
     return () => { document.removeEventListener('keydown', esc); document.body.style.overflow = '' }
   }, [onClose])
 
-  if (!llanta) return null
   return (
     <div
       onClick={onClose}
@@ -579,7 +578,7 @@ export default function Catalogo() {
     <div style={{ background: '#030712', color: '#fff', minHeight: '100dvh', position: 'relative' }}>
       <style>{CSS}</style>
       <ParticleCanvas />
-      <ModalDetalle llanta={seleccionada} onClose={() => setSeleccionada(null)} />
+      {seleccionada && <ModalDetalle llanta={seleccionada} onClose={() => setSeleccionada(null)} />}
       {guiaAbierta && <ModalGuia onClose={() => setGuiaAbierta(false)} />}
       <BurbujaWhatsApp />
 
