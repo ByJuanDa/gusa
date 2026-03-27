@@ -275,18 +275,6 @@ export default function Reportes() {
       {/* Contenido */}
       <div style={{ maxWidth: '900px', margin: '28px auto 0', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-        {/* Aviso de permisos */}
-        <div style={{ backgroundColor: '#0a0e17', border: '1px solid #1f2937', borderRadius: '12px', padding: '14px 18px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-          <span style={{ fontSize: '18px', flexShrink: 0 }}>ℹ️</span>
-          <div>
-            <p style={{ color: '#e5e7eb', fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>Acceso según tu rol</p>
-            <p style={{ color: '#6b7280', fontSize: '12px' }}>
-              <strong style={{ color: '#facc15' }}>Sistemas / Gerente General:</strong> inventario + ventas.&nbsp;&nbsp;
-              <strong style={{ color: '#9ca3af' }}>Encargado:</strong> solo inventario.
-            </p>
-          </div>
-        </div>
-
         {/* Cards */}
         <CardInventario />
         {esAdmin && <CardVentas />}

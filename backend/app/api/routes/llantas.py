@@ -254,6 +254,10 @@ async def subir_imagen(
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
         raise HTTPException(status_code=400, detail="Solo jpg, png o webp")
+    MAX_SIZE = 5 * 1024 * 1024  # 5 MB
+    contenido = await file.read()
+    if len(contenido) > MAX_SIZE:
+        raise HTTPException(status_code=413, detail="La imagen no puede superar 5 MB")
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     # Borrar imagen anterior
     if llanta.imagen_url:
@@ -263,7 +267,7 @@ async def subir_imagen(
     filename = f"{uuid.uuid4()}{ext}"
     filepath = os.path.join(UPLOAD_DIR, filename)
     with open(filepath, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+        f.write(contenido)
     llanta.imagen_url = f"/static/images/llantas/{filename}"
     db.commit()
     db.refresh(llanta)
