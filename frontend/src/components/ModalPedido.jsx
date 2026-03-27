@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useToast } from '../context/ToastContext'
 import api from '../services/api'
 
@@ -89,6 +89,13 @@ export default function ModalPedido({ onClose, onRegistrado }) {
   const [enviando, setEnviando] = useState(false)
   const [error,    setError]    = useState('')
   const [recibo,   setRecibo]   = useState(null)
+  const [cursor,   setCursor]   = useState(-1)  // índice activo en sugerencias
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
 
   useEffect(() => {
     api.get('/llantas/inventario')
@@ -106,8 +113,11 @@ export default function ModalPedido({ onClose, onRegistrado }) {
   }).slice(0, 6)
 
   function agregarLlanta(llanta) {
-    setItems([...items, { llanta, cantidad: 1, costo: llanta.costo_compra || '' }])
+    setItems((prev) => [...prev, { llanta, cantidad: 1, costo: llanta.costo_compra || '' }])
     setBusqueda('')
+    setCursor(-1)
+    // Refoco inmediato para seguir escribiendo la próxima llanta
+    setTimeout(() => inputRef.current?.focus(), 0)
   }
 
   function quitar(id) {
@@ -116,6 +126,23 @@ export default function ModalPedido({ onClose, onRegistrado }) {
 
   function actualizar(id, campo, valor) {
     setItems(items.map((i) => i.llanta.id === id ? { ...i, [campo]: valor } : i))
+  }
+
+  function handleKeyDown(e) {
+    if (!sugerencias.length) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setCursor((c) => Math.min(c + 1, sugerencias.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setCursor((c) => Math.max(c - 1, 0))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const idx = cursor >= 0 ? cursor : 0
+      if (sugerencias[idx]) agregarLlanta(sugerencias[idx])
+    } else if (e.key === 'Escape') {
+      setBusqueda(''); setCursor(-1)
+    }
   }
 
   const totalPiezas = items.reduce((s, i) => s + (parseInt(i.cantidad) || 0), 0)
@@ -184,16 +211,25 @@ export default function ModalPedido({ onClose, onRegistrado }) {
                 </svg>
               </span>
               <input
+                ref={inputRef}
                 type="text"
                 placeholder="Escribe el código, marca, modelo o medida..."
                 value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
+                onChange={(e) => { setBusqueda(e.target.value); setCursor(-1) }}
+                onKeyDown={handleKeyDown}
                 style={{ ...S.input, paddingLeft: '34px' }}
                 onFocus={(e) => e.target.style.borderColor = '#4ade80'}
                 onBlur={(e) => e.target.style.borderColor = '#1f2937'}
                 autoFocus
+                autoComplete="off"
               />
             </div>
+
+            {busqueda && sugerencias.length > 0 && (
+              <p style={{ fontSize: 10, color: '#374151', marginTop: 4, marginBottom: 0 }}>
+                ↑↓ para navegar · <kbd style={{ background: '#1f2937', borderRadius: 3, padding: '1px 4px', color: '#6b7280' }}>Enter</kbd> para agregar · <kbd style={{ background: '#1f2937', borderRadius: 3, padding: '1px 4px', color: '#6b7280' }}>Esc</kbd> para limpiar
+              </p>
+            )}
 
             {/* Sugerencias */}
             {busqueda && (
@@ -202,14 +238,14 @@ export default function ModalPedido({ onClose, onRegistrado }) {
                   <p style={{ color: '#6b7280', fontSize: '13px', padding: '12px 16px' }}>Cargando...</p>
                 ) : sugerencias.length === 0 ? (
                   <p style={{ color: '#374151', fontSize: '13px', padding: '12px 16px' }}>Sin resultados para "{busqueda}"</p>
-                ) : sugerencias.map((l) => (
+                ) : sugerencias.map((l, idx) => (
                   <button
                     key={l.id}
                     type="button"
                     onClick={() => agregarLlanta(l)}
-                    style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid #1a2030', padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left', transition: 'background-color 0.15s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2030'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onMouseEnter={() => setCursor(idx)}
+                    onMouseLeave={() => setCursor(-1)}
+                    style={{ width: '100%', background: cursor === idx ? '#1a2030' : 'none', border: 'none', borderBottom: '1px solid #1a2030', padding: '10px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left' }}
                   >
                     <div>
                       <span style={{ color: '#facc15', fontFamily: 'monospace', fontSize: '12px', fontWeight: 700 }}>{l.codigo}</span>

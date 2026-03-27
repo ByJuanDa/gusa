@@ -7,6 +7,14 @@ import api from '../services/api'
 const ROLES_ADMIN  = ['Sistemas', 'Gerente General']
 const ROLES_PRECIO = ['Sistemas', 'Gerente General', 'Encargado']
 
+// Bloquea el scroll del body mientras el modal está montado
+function useScrollLock() {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+}
+
 // ── Shared styles ──────────────────────────────────────────────
 const S = {
   overlay: {
@@ -70,6 +78,7 @@ function ModalHeader({ codigo, titulo, onClose }) {
 
 // ── Modal Precio ──────────────────────────────────────────────
 function ModalPrecio({ llanta, onClose, onGuardado }) {
+  useScrollLock()
   const { addToast } = useToast()
   const [form, setForm] = useState({ costo_compra: llanta.costo_compra, precio_venta: llanta.precio_venta })
   const [guardando, setGuardando] = useState(false)
@@ -128,6 +137,7 @@ function ModalPrecio({ llanta, onClose, onGuardado }) {
 
 // ── Modal Editar ──────────────────────────────────────────────
 function ModalEditar({ llanta, marcas, onClose, onGuardado }) {
+  useScrollLock()
   const { addToast } = useToast()
   const [form, setForm] = useState({
     medida: llanta.medida,
@@ -271,6 +281,7 @@ function ModalEditar({ llanta, marcas, onClose, onGuardado }) {
 
 // ── Modal Nueva Llanta ────────────────────────────────────────
 function ModalNuevaLlanta({ marcas, onClose, onCreada }) {
+  useScrollLock()
   const { addToast } = useToast()
   const [form, setForm] = useState({
     codigo: '',
@@ -438,6 +449,7 @@ function ModalNuevaLlanta({ marcas, onClose, onCreada }) {
 
 // ── Modal Confirmar Eliminar ──────────────────────────────────
 function ModalConfirmar({ llanta, onClose, onConfirmar }) {
+  useScrollLock()
   const { addToast } = useToast()
   const [eliminando, setEliminando] = useState(false)
   async function handleEliminar() {
@@ -477,6 +489,7 @@ function ModalConfirmar({ llanta, onClose, onConfirmar }) {
 
 // ── Modal Movimiento ──────────────────────────────────────────
 function ModalMovimiento({ llanta, onClose, onGuardado }) {
+  useScrollLock()
   const { addToast } = useToast()
   const [form, setForm] = useState({ tipo: 'entrada', cantidad: '', costo_unitario: '', notas: '' })
   const [guardando, setGuardando] = useState(false)
@@ -609,6 +622,7 @@ function ModalMovimiento({ llanta, onClose, onGuardado }) {
 
 // ── Modal Historial ───────────────────────────────────────────
 function ModalHistorial({ llanta, onClose }) {
+  useScrollLock()
   const [movimientos, setMovimientos] = useState([])
   const [cargando, setCargando] = useState(true)
 
